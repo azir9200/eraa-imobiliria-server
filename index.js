@@ -44,7 +44,7 @@ async function run() {
 
     //middleware
     const varifyToken = (req, res, next) => {
-      console.log('inside verify token', req.headers.Authorization);
+      // console.log('inside verify token', req.headers.Authorization);
       if (!req.headers.Authorization) {
         return res.status(401).send({ message: 'forbidden access' });
       }
@@ -56,15 +56,42 @@ async function run() {
         req.decoded = decoded;
         next();
       })
-      // next();
+
+    }
+
+    // use verify admin after verifyToken
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      const isAdmin = user?.role === 'admin';
+      if (!isAdmin) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      next();
     }
 
     // user related api
-    app.get('/users', varifyToken, async (req, res) => {
+    app.get('/users', varifyToken, verifyAdmin, async (req, res) => {
       console.log(req.headers);
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
+
+    app.get('/user/admin/:email', varifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'unauthorised access' })
+      }
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === 'admin';
+      }
+      res.send({ admin });
+
+    })
 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -78,7 +105,7 @@ async function run() {
       res.send(result);
     })
     //admin related api
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id', varifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -91,7 +118,7 @@ async function run() {
     })
 
     // user delete api
-    app.delete('/users/:id', async (req, res) => {
+    app.delete('/users/:id', varifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await usersCollection.deleteOne(query);
