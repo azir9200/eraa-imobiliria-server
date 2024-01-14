@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    //await client.connect();
 
     const usersCollection = client.db('eraaRealDb').collection('users');
     const houseCollection = client.db('eraaRealDb').collection('allHouses');
@@ -104,6 +104,7 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     })
+
     //admin related api
     app.patch('/users/admin/:id', varifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
@@ -146,6 +147,11 @@ async function run() {
 
     //all wishlist collection
     app.get('/wishList', async (req, res) => {
+      const result = await wishListCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.get('/wishList', async (req, res) => {
       const email = req.query.email;
       const query = { email: email }
       const result = await wishListCollection.find(query).toArray()
@@ -171,8 +177,7 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+   
   }
 }
 run().catch(console.dir);
