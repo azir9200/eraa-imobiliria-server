@@ -44,7 +44,7 @@ async function run() {
 
     //middleware
     const varifyToken = (req, res, next) => {
-      // console.log('inside verify token', req.headers.Authorization);
+       console.log('inside verify token', req.headers.Authorization);
       if (!req.headers.Authorization) {
         return res.status(401).send({ message: 'forbidden access' });
       }
@@ -72,16 +72,16 @@ async function run() {
     }
 
     // user related api
-    app.get('/users', varifyToken, verifyAdmin, async (req, res) => {
+    app.get('/users', async (req, res) => {
       console.log(req.headers);
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
-    app.get('/user/admin/:email', varifyToken, async (req, res) => {
+    app.get('/users/admin/:email', varifyToken, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded.email) {
-        return res.status(403).send({ message: 'unauthorised access' })
+        return res.status(403).send({ message: 'unAuthorised access' })
       }
       const query = { email: email };
       const user = await usersCollection.findOne(query);
@@ -93,9 +93,11 @@ async function run() {
 
     })
 
+//todo this will be deleted
+
     app.post('/users', async (req, res) => {
       const user = req.body;
-      //insert email if user not signupn yet  1.email unique/upsert/simple
+      //insert email if user not signup yet  1.email unique/upsert/simple
       const query = { email: user.email }
       const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
@@ -137,6 +139,7 @@ async function run() {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
     })
+
     // house details
     app.get('/allHouse/:id', async (req, res) => {
       const id = req.params.id;
@@ -174,7 +177,7 @@ async function run() {
     })
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
    
