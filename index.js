@@ -78,11 +78,11 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users/admin/:email', varifyToken, async (req, res) => {
+    app.get('/users/admin/:email', async (req, res) => {
       const email = req.params.email;
-      if (email !== req.decoded.email) {
-        return res.status(403).send({ message: 'unAuthorised access' })
-      }
+      // if (email !== req.decoded.email) {
+      //   return res.status(403).send({ message: 'unAuthorised access' })
+      // }
       const query = { email: email };
       const user = await usersCollection.findOne(query);
       let admin = false;
@@ -134,6 +134,12 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/allHouses', async (req, res) => {
+      const addProperty = req.body;
+      const result = await houseCollection.insertOne(addProperty);
+      res.send(result);
+    })
+
 
     app.get('/reviews', async (req, res) => {
       const result = await reviewsCollection.find().toArray();
@@ -156,7 +162,9 @@ async function run() {
 
     app.get('/wishList', async (req, res) => {
       const email = req.query.email;
+      console.log(email)
       const query = { email: email }
+      console.log(query)
       const result = await wishListCollection.find(query).toArray()
       res.send(result);
     })
@@ -167,6 +175,7 @@ async function run() {
       const result = await wishListCollection.insertOne(wishList)
       res.send(result);
     })
+    
     // delete operation
     app.delete('/wishList/:id', async (req, res) => {
       const id = req.params.id;
