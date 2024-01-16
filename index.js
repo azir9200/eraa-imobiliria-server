@@ -134,9 +134,16 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/allHouses', async (req, res) => {
+    app.post('/allHouses', async (req, res) => {
       const addProperty = req.body;
       const result = await houseCollection.insertOne(addProperty);
+      res.send(result);
+    })
+
+    app.delete('/allHouses/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await houseCollection.deleteOne(query);
       res.send(result);
     })
 
@@ -175,7 +182,7 @@ async function run() {
       const result = await wishListCollection.insertOne(wishList)
       res.send(result);
     })
-    
+
     // delete operation
     app.delete('/wishList/:id', async (req, res) => {
       const id = req.params.id;
