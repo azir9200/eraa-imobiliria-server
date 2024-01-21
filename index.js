@@ -3,6 +3,13 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// const mg = mailgun.client({
+//   username: 'api',
+//   key: process.env.MAIL_GUN_API_KEY,
+// });
+
+
 const port = process.env.PORT || 5000;
 
 
@@ -142,9 +149,12 @@ async function run() {
 
     app.delete('/allHouses/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      console.log("id",  id)
+      const query = {_id : id}
       const result = await houseCollection.deleteOne(query);
+      console.log(result)
       res.send(result);
+      
     })
 
 
@@ -154,7 +164,7 @@ async function run() {
     })
 
     // house details
-    app.get('/allHouse/:id', async (req, res) => {
+    app.get('/allHouses/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: id }
       const result = await houseCollection.findOne(query);
@@ -190,6 +200,21 @@ async function run() {
       const result = await wishListCollection.deleteOne(query);
       res.send(result);
 
+    })
+
+    //  payment api  
+
+    app.post('/create-payment-intent', async(req, res) =>{
+      const {price} = req.body;
+      const amount = parseInt(price * 100);
+
+      const paymentIntent = await stripe.paymentIntent.create({
+        amount: amount,
+        payment_method_types: ['card']
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
     })
 
     // Send a ping to confirm a successful connection
