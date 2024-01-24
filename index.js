@@ -115,7 +115,7 @@ async function run() {
     })
 
     //admin related api
-    app.patch('/users/admin/:id', varifyToken, verifyAdmin, async (req, res) => {
+    app.patch('/users/admin/:id',  async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -124,6 +124,7 @@ async function run() {
         }
       }
       const result = await usersCollection.updateOne(filter, updateDoc)
+      console.log(result);
       res.send(result);
     })
 
