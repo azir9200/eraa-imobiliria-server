@@ -51,11 +51,13 @@ async function run() {
 
     //middleware
     const varifyToken = (req, res, next) => {
-       console.log('inside verify token', req.headers.Authorization);
-      if (!req.headers.Authorization) {
+       console.log('inside verify token', req.headers.authorization);
+       console.log(req)
+      if (!req.headers.authorization) {
+        
         return res.status(401).send({ message: 'forbidden access' });
       }
-      const token = req.headers.Authorization.split(' ')[1];
+      const token = req.headers.authorization.split(' ')[1];
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
           return res.status(401).send({ message: 'forbidden access' })
@@ -100,6 +102,21 @@ async function run() {
 
     })
 
+    app.get('/users/agent/:email', async (req, res) => {
+      const email = req.params.email;
+      // if (email !== req.decoded.email) {
+      //   return res.status(403).send({ message: 'unAuthorised access' })
+      // }
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let agent = false;
+      if (user) {
+        agent = user?.role === 'agent';
+      }
+      res.send({ agent });
+    })
+
+
 //todo this will be deleted
 
     app.post('/users', async (req, res) => {
@@ -121,6 +138,20 @@ async function run() {
       const updateDoc = {
         $set: {
           role: 'admin'
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updateDoc)
+      console.log(result);
+      res.send(result);
+    })
+
+    //Agent related api
+    app.patch('/users/agent/:id',  async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'agent'
         }
       }
       const result = await usersCollection.updateOne(filter, updateDoc)
